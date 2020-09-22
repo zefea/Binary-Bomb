@@ -66,10 +66,10 @@ Dump of assembler code for function phase_3:
    0x0000000000400e19 <+14>:	mov    $0x40236f,%esi
    0x0000000000400e1e <+19>:	mov    $0x0,%eax
    0x0000000000400e23 <+24>:	callq  0x400b00 <__isoc99_sscanf@plt>
-   0x0000000000400e28 <+29>:	cmp    $0x1,%eax
-   0x0000000000400e2b <+32>:	jle    0x400e3f <phase_3+52>
-   0x0000000000400e2d <+34>:	cmpl   $0x7,0xc(%rsp)
-   0x0000000000400e32 <+39>:	ja     0x400e77 <phase_3+108>
+   0x0000000000400e28 <+29>:	cmp    $0x1,%eax                             /*first number should be greater than 1,
+   0x0000000000400e2b <+32>:	jle    0x400e3f <phase_3+52>                  *
+   0x0000000000400e2d <+34>:	cmpl   $0x7,0xc(%rsp)                         *and also smaller than 7.
+   0x0000000000400e32 <+39>:	ja     0x400e77 <phase_3+108>                 */
    0x0000000000400e34 <+41>:	mov    0xc(%rsp),%eax
    0x0000000000400e38 <+45>:	jmpq   *0x402210(,%rax,8)
    0x0000000000400e3f <+52>:	callq  0x40129e <explode_bomb>
