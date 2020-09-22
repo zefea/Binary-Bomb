@@ -174,8 +174,14 @@ So we understand that third number has to be addition of first two. which is 0+1
 
 This process continues until all the six values checked. Ofcourse it some number are wrong the bomb will explode.
 
+So here is the algortihm:
 
-At the end , it a Fibonacci!!! 
+int i = 1;     
+v[0]=0 and v[1]=1
+v[i+1] = v[i-1] + v[i]
+i++;
+
+it's a Fibonacci!!! 
 
 So the 6 numbers that we looking for is : 
    
