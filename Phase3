@@ -1,0 +1,107 @@
+###########
+
+Phase 3
+
+###########
+
+This time breakpoint should be for phase 3. 
+
+First thing to do is find the format. So lets run it with random format and see the dissambly code.
+(gdb) b phase_3
+Breakpoint 1 at 0x400e0b
+(gdb) r answers.txt
+Starting program: /home/zeynep/Desktop/Project 2/bomb answers.txt
+Welcome to my fiendish little bomb. You have 6 phases with
+which to blow yourself up. Have a nice day!
+Phase 1 defused. How about the next one?
+That's number 2.  Keep going!
+77 88 a            
+
+Breakpoint 1, 0x0000000000400e0b in phase_3 ()
+(gdb) disas
+Dump of assembler code for function phase_3:
+=> 0x0000000000400e0b <+0>:	sub    $0x18,%rsp
+   0x0000000000400e0f <+4>:	lea    0x8(%rsp),%rcx
+   0x0000000000400e14 <+9>:	lea    0xc(%rsp),%rdx
+   0x0000000000400e19 <+14>:	mov    $0x40236f,%esi
+   0x0000000000400e1e <+19>:	mov    $0x0,%eax
+   0x0000000000400e23 <+24>:	callq  0x400b00 <__isoc99_sscanf@plt>.            //format???
+   .
+   .
+   .
+   .
+   .
+   ....
+   
+After moving the address +24, and step into the function;
+(gdb) si
+0x0000000000400b00 in __isoc99_sscanf@plt ()
+(gdb) disas
+Dump of assembler code for function __isoc99_sscanf@plt:
+=> 0x0000000000400b00 <+0>:	jmpq   *0x20258a(%rip)        # 0x603090
+   0x0000000000400b06 <+6>:	pushq  $0xf
+   0x0000000000400b0b <+11>:	jmpq   0x400a00
+End of assembler dump.
+(gdb) ni
+__isoc99_sscanf (s=0x603820 <input_strings+160> "77 88 a", format=0x40236f "%d %d") at isoc99_sscanf.c:26
+26	isoc99_sscanf.c: No such file or directory.
+(
+
+İt can be seen that, the given input is 77 88 a and the wanted format is two integer with a space.
+So after leaving this function bomb will explode. Let's try one more time with the correct format to find the password.
+(gdb) r answers.txt
+Starting program: /home/zeynep/Desktop/Project 2/bomb answers.txt
+Welcome to my fiendish little bomb. You have 6 phases with
+which to blow yourself up. Have a nice day!
+Phase 1 defused. How about the next one?
+That's number 2.  Keep going!
+77 88
+
+Breakpoint 1, 0x0000000000400e0b in phase_3 ()
+(gdb) disas
+Dump of assembler code for function phase_3:
+=> 0x0000000000400e0b <+0>:	sub    $0x18,%rsp
+   0x0000000000400e0f <+4>:	lea    0x8(%rsp),%rcx
+   0x0000000000400e14 <+9>:	lea    0xc(%rsp),%rdx
+   0x0000000000400e19 <+14>:	mov    $0x40236f,%esi
+   0x0000000000400e1e <+19>:	mov    $0x0,%eax
+   0x0000000000400e23 <+24>:	callq  0x400b00 <__isoc99_sscanf@plt>
+   0x0000000000400e28 <+29>:	cmp    $0x1,%eax
+   0x0000000000400e2b <+32>:	jle    0x400e3f <phase_3+52>
+   0x0000000000400e2d <+34>:	cmpl   $0x7,0xc(%rsp)
+   0x0000000000400e32 <+39>:	ja     0x400e77 <phase_3+108>
+   0x0000000000400e34 <+41>:	mov    0xc(%rsp),%eax
+   0x0000000000400e38 <+45>:	jmpq   *0x402210(,%rax,8)
+   0x0000000000400e3f <+52>:	callq  0x40129e <explode_bomb>
+   0x0000000000400e44 <+57>:	jmp    0x400e2d <phase_3+34>
+   0x0000000000400e46 <+59>:	mov    $0x1ee,%eax
+   0x0000000000400e4b <+64>:	jmp    0x400e88 <phase_3+125>
+   0x0000000000400e4d <+66>:	mov    $0x16a,%eax
+   0x0000000000400e52 <+71>:	jmp    0x400e88 <phase_3+125>
+   0x0000000000400e54 <+73>:	mov    $0x394,%eax
+   0x0000000000400e59 <+78>:	jmp    0x400e88 <phase_3+125>
+   0x0000000000400e5b <+80>:	mov    $0x80,%eax
+   0x0000000000400e60 <+85>:	jmp    0x400e88 <phase_3+125>
+   0x0000000000400e62 <+87>:	mov    $0x101,%eax
+   0x0000000000400e67 <+92>:	jmp    0x400e88 <phase_3+125>
+   0x0000000000400e69 <+94>:	mov    $0x2a9,%eax
+   0x0000000000400e6e <+99>:	jmp    0x400e88 <phase_3+125>
+   0x0000000000400e70 <+101>:	mov    $0x41,%eax
+   0x0000000000400e75 <+106>:	jmp    0x400e88 <phase_3+125>
+   0x0000000000400e77 <+108>:	callq  0x40129e <explode_bomb>
+   0x0000000000400e7c <+113>:	mov    $0x0,%eax
+   0x0000000000400e81 <+118>:	jmp    0x400e88 <phase_3+125>
+   0x0000000000400e83 <+120>:	mov    $0x21c,%eax
+   0x0000000000400e88 <+125>:	cmp    %eax,0x8(%rsp)
+   0x0000000000400e8c <+129>:	je     0x400e93 <phase_3+136>
+   0x0000000000400e8e <+131>:	callq  0x40129e <explode_bomb>
+   0x0000000000400e93 <+136>:	add    $0x18,%rsp
+   0x0000000000400e97 <+140>:	retq   
+End of assembler dump.
+
+This is a swich-case situation. 
+
+I will continue. I am bored. Sorry. I'll be back.
+   
+   
+   
