@@ -1,0 +1,40 @@
+
+In this project gdb debugger is used. First command on the window is gdb bomb.And when we run it, we are in.
+First lets look at the inside of .exe file.
+
+objdumb -d bomb, objdumb -t bomb will give lots of information about the code. All the function names and lots of it is in it.
+Also strings bomb command can work to understand the code. For example here is a part of the result.
+
+...... ~/Desktop/Project 2$ strings bomb
+.
+.
+argv
+phase_1
+phase_2
+phase_3
+phase_4
+phase_5
+phase_6
+_IO_backup_base
+argc
+main
+_IO_write_base
+crtstuff.c
+.
+.
+.
+
+so with all of the strings, we can see that,
+There is 6 phases and a secret phase. To find the passwords every phases should be done step by step. 
+
+(gdb) run bomb
+Starting program: /home/zeynep/Desktop/Project 2/bomb bomb
+Welcome to my fiendish little bomb. You have 6 phases with
+which to blow yourself up. Have a nice day!
+
+BOOM!!!
+The bomb has blown up.
+
+
+When the program runs, bomb has blown up immediatly becasuse it needs passwords. 
+So using breakpoints, the assembly code of that part can be seen which is the phase that we try to solve at the moment(phase1,..). 
