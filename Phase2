@@ -153,11 +153,13 @@ And same situation also supports the second number. İt has to be 1.
 
 For rest of the numbers, firstly lets think step by step and only find the third one.
 
-At the beginning our rbx shows the beginning of the numbers' address'. This means its the first address of the stack. And depend on the data type addres' changes 4 byte in an int case.
+At the beginning, our rbx shows the beginning of the numbers' address'. This means its the first address of the stack. And depend on the data type addres' changes 4 byte in an int case.
 So by adding 4 to rbx, means the next address and in the first case it means second number.
 --> 0x0000000000400dea <+41>:	add    $0x4,%rbx 
 
-And then the value that has been kept in address (current rbx)+4 which means (first address)+8 moved to the register eax. So eax keeps the secon one.
+rbx is updated.
+
+And then the value that has been kept in address (current rbx)+4 which means (first address(old rbx))+8 moved to the register eax. So eax keeps the second one.
 --> 0000000000400df3 <+50>:	mov    0x4(%rbx),%eax                 //eax = second number in rbx
 
 Then eax updated by adding the value of the first address of rbx shows. 
@@ -165,8 +167,14 @@ Then eax updated by adding the value of the first address of rbx shows.
 
 eax = old eax (which is second of rbx) + first rbx.
 
+
+Note: it is important to realize that the rbx's address does not changed in the second part. 
+      0x4(%rbx) with parentheses means the value of rbx+4 address shows.   
+      But adding 4 of rbx which is directly writing rbx+4, means changing the address that has been shown by rbx.
+
 From here,the current rbx shows the second address so adding 8 means third address of the stack. 
 So we understand that third number has to be addition of first two. which is 0+1 = 1.
+
 --> 0x0000000000400df8 <+55>:	cmp    %eax,0x8(%rbx)
     0x0000000000400dfb <+58>:	je     0x400dea <phase_2+41>                 //jump 41 and update the current rbx by adding 4 for next comparasion
     0x0000000000400dfd <+60>:	callq  0x40129e <explode_bomb>               //not match
