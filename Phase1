@@ -1,0 +1,167 @@
+###########
+
+Phase 1
+
+###########
+
+1. Put breakpoint for phase 1:
+  (gdb) break phase_1
+  Breakpoint 1 at 0x400da3
+  (gdb) r
+  Starting program: /home/zeynep/Desktop/Project 2/bomb bomb
+  Welcome to my fiendish little bomb. You have 6 phases with
+  which to blow yourself up. Have a nice day!
+
+  Breakpoint 1, 0x0000000000400da3 in phase_1 ()
+  (gdb) disas
+  Dump of assembler code for function phase_1:                        
+  => 0x0000000000400da3 <+0>:	sub    $0x8,%rsp                        //building stack frame with 8 more bytes
+     0x0000000000400da7 <+4>:	mov    $0x4021b0,%esi                   //something moved to the address $0x4021b0
+     0x0000000000400dac <+9>:	callq  0x4011a1 <strings_not_equal>     //will compare input string with answer
+     0x0000000000400db1 <+14>:	test   %eax,%eax                      //if eax == 0 or not. 
+     0x0000000000400db3 <+16>:	jne    0x400dba <phase_1+23>        
+     0x0000000000400db5 <+18>:	add    $0x8,%rsp                      
+     0x0000000000400db9 <+22>:	retq                                  //return. .  
+     0x0000000000400dba <+23>:	callq  0x40129e <explode_bomb>        //call explode_bomb function
+     0x0000000000400dbf <+28>:	jmp    0x400db5 <phase_1+18>          
+  End of assembler dump.
+  
+  Lets examine the assembly code for phase 1. As it can be seen that there is a function call for comparing strings: callq  0x4011a1 <strings_not_equal>.
+  From here we figure that the password is some kind of string. 
+  This is the intial values of registers.
+  (gdb) info reg
+  rax            0x603780	6305664
+  rbx            0x7fffffffdef8	140737488346872
+  rcx            0x6	6
+  rdx            0x603780	6305664
+  rsi            0x0	0
+  rdi            0x603780	6305664
+  rbp            0x401fd0	0x401fd0 <__libc_csu_init>
+  rsp            0x7fffffffde08	0x7fffffffde08
+  r8             0x0	0
+  r9             0x0	0
+  r10            0x3	3
+  r11            0x7ffff7a14890	140737347930256
+  r12            0x400b90	4197264
+  r13            0x7fffffffdef0	140737488346864
+  r14            0x0	0
+  r15            0x0	0
+  rip            0x400da3	0x400da3 <phase_1>
+  eflags         0x202	[ IF ]
+  cs             0x33	51
+  ss             0x2b	43
+  ds             0x0	0
+  es             0x0	0
+  fs             0x0	0
+  gs             0x0	0
+
+  (gdb) ni          //next line
+  0x0000000000400da7 in phase_1 ()
+  (gdb) print $rsp                
+  $1 = (void *) 0x7fffffffde00
+
+  As you see, stack address change 8.
+  So lets move one more line and see what is it in the address $0x4021b0.
+  (gdb) x/s 0x4021b0 
+  0x4021b0:     	"I am the mayor. I can do anything I want."
+  
+  So, this must be it..
+  
+  This string is being moved into %esi, and will be passed into <strings_not_equal>. Let's examine what <strings_not_equal> does:
+  (gdb) stepi
+  0x00000000004011a1 in strings_not_equal ()
+  (gdb) disas
+  Dump of assembler code for function strings_not_equal:
+  => 0x00000000004011a1 <+0>:	push   %r12
+     0x00000000004011a3 <+2>:	push   %rbp
+     0x00000000004011a4 <+3>:	push   %rbx
+     0x00000000004011a5 <+4>:	mov    %rdi,%rbx
+     0x00000000004011a8 <+7>:	mov    %rsi,%rbp
+     0x00000000004011ab <+10>:	callq  0x401184 <string_length>
+     0x00000000004011b0 <+15>:	mov    %eax,%r12d
+     0x00000000004011b3 <+18>:	mov    %rbp,%rdi
+     0x00000000004011b6 <+21>:	callq  0x401184 <string_length>
+     0x00000000004011bb <+26>:	mov    $0x1,%edx
+     0x00000000004011c0 <+31>:	cmp    %eax,%r12d
+     0x00000000004011c3 <+34>:	je     0x4011cc <strings_not_equal+43>
+     0x00000000004011c5 <+36>:	mov    %edx,%eax
+     0x00000000004011c7 <+38>:	pop    %rbx
+     0x00000000004011c8 <+39>:	pop    %rbp
+     0x00000000004011c9 <+40>:	pop    %r12
+     0x00000000004011cb <+42>:	retq   
+     0x00000000004011cc <+43>:	movzbl (%rbx),%eax
+     0x00000000004011cf <+46>:	test   %al,%al
+     0x00000000004011d1 <+48>:	je     0x4011fa <strings_not_equal+89>
+     0x00000000004011d3 <+50>:	cmp    0x0(%rbp),%al
+     0x00000000004011d6 <+53>:	jne    0x401201 <strings_not_equal+96>
+     0x00000000004011d8 <+55>:	add    $0x1,%rbx
+     0x00000000004011dc <+59>:	add    $0x1,%rbp
+     0x00000000004011e0 <+63>:	movzbl (%rbx),%eax
+     0x00000000004011e3 <+66>:	test   %al,%al
+     0x00000000004011e5 <+68>:	je     0x4011f3 <strings_not_equal+82>
+     0x00000000004011e7 <+70>:	cmp    %al,0x0(%rbp)
+     0x00000000004011ea <+73>:	je     0x4011d8 <strings_not_equal+55>
+     0x00000000004011ec <+75>:	mov    $0x1,%edx
+     0x00000000004011f1 <+80>:	jmp    0x4011c5 <strings_not_equal+36>
+     0x00000000004011f3 <+82>:	mov    $0x0,%edx
+     0x00000000004011f8 <+87>:	jmp    0x4011c5 <strings_not_equal+36>
+     0x00000000004011fa <+89>:	mov    $0x0,%edx
+     0x00000000004011ff <+94>:	jmp    0x4011c5 <strings_not_equal+36>
+     0x0000000000401201 <+96>:	mov    $0x1,%edx
+  ---Type <return> to continue, or q <return> to quit---
+     0x0000000000401206 <+101>:	jmp    0x4011c5 <strings_not_equal+36>
+  End of assembler dump.
+
+  So strings_not_equal firstly checks the given strings lenght then compare.
+  If lengths are not equal this means strings not equal and returns 1 or -1.If they are then checks the characters.
+  
+  When we are done with strings_not_equal,here is phase_1:
+  (gdb) disas
+  Dump of assembler code for function phase_1:
+     0x0000000000400da3 <+0>:	sub    $0x8,%rsp
+     0x0000000000400da7 <+4>:	mov    $0x4021b0,%esi
+     0x0000000000400dac <+9>:	callq  0x4011a1 <strings_not_equal>
+     0x0000000000400db1 <+14>:	test   %eax,%eax
+  => 0x0000000000400db3 <+16>:	jne    0x400dba <phase_1+23>
+     0x0000000000400db5 <+18>:	add    $0x8,%rsp
+     0x0000000000400db9 <+22>:	retq   
+     0x0000000000400dba <+23>:	callq  0x40129e <explode_bomb>
+     0x0000000000400dbf <+28>:	jmp    0x400db5 <phase_1+18>
+  End of assembler dump.
+  
+  and we'll see that register %eax keeps 1. This means not equal so explode_bomb will call.
+  But we already find the password: "I am the mayor. I can do anything I want."
+  
+  Lets write this string to a .txt file and try one more time using the file.
+  (gdb) r answers.txt
+  Starting program: /home/zeynep/Desktop/Project 2/bomb answers.txt
+  Welcome to my fiendish little bomb. You have 6 phases with
+  which to blow yourself up. Have a nice day!
+  Phase 1 defused. How about the next one?
+  |     //and it is time for a passwrod as an input for phase 2.
+  
+  
+  or you can basicly write the strinf on the console:
+  (gdb) r
+  Starting program: /home/zeynep/Desktop/Project 2/bomb 
+  Welcome to my fiendish little bomb. You have 6 phases with
+  which to blow yourself up. Have a nice day!
+  I am the mayor. I can do anything I want.
+  Phase 1 defused. How about the next one?
+  | 
+
+  
+  
+  Time for phase 2....
+
+
+  
+ 
+  
+
+  
+  
+
+
+  
+  
