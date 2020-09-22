@@ -11,5 +11,6 @@ terminating. The bomb is defused when every phase has been defused.
 - Each “bomb” is a Linux binary executable file that has been compiled from a C program.
 
 - gdb
-The GNU debugger, this is a command line debugger tool available on virtually every platform. You can trace
-through a program line by line, examine memory and registers, look at both the source code and assembly code.
+
+  The GNU debugger, this is a command line debugger tool available on virtually every platform. You can trace
+  through a program line by line, examine memory and registers, look at both the source code and assembly code.
