@@ -17,7 +17,7 @@ Starting program: /home/zeynep/Desktop/Project 2/bomb answers.txt
 Welcome to my fiendish little bomb. You have 6 phases with
 which to blow yourself up. Have a nice day!
 Phase 1 defused. How about the next one?
-123                                                     //lets try some number this number when it asks the input.
+123                                                     //lets try some number when it asks the input.
 
 Breakpoint 1, 0x0000000000400dc1 in phase_2 ()
 (gdb) disas
