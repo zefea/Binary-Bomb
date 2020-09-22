@@ -1,5 +1,7 @@
 # Binary-Bomb
 
+//Explanation for phase 4-5-6 will be ready soon...
+
 The purpose of this project is to become more familiar with machine level programming.
 
 A binary bomb is a program that consists of a sequence of phases.
