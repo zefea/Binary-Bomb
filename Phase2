@@ -52,6 +52,36 @@ End of assembler dump.
 
 In this line, 
       0x0000000000400dca <+9>:	callq  0x4012c0 <read_six_numbers>
+------------------------------------------------------------------------
+Inside of read_six_numbers, we can see what kind of password do we have:
+0x00000000004012e7 in read_six_numbers ()
+(gdb) disas
+Dump of assembler code for function read_six_numbers:
+   0x00000000004012c0 <+0>:	sub    $0x8,%rsp
+   0x00000000004012c4 <+4>:	mov    %rsi,%rdx
+   0x00000000004012c7 <+7>:	lea    0x4(%rsi),%rcx
+   0x00000000004012cb <+11>:	lea    0x14(%rsi),%rax
+   0x00000000004012cf <+15>:	push   %rax
+   0x00000000004012d0 <+16>:	lea    0x10(%rsi),%rax
+   0x00000000004012d4 <+20>:	push   %rax
+   0x00000000004012d5 <+21>:	lea    0xc(%rsi),%r9
+   0x00000000004012d9 <+25>:	lea    0x8(%rsi),%r8
+   0x00000000004012dd <+29>:	mov    $0x402363,%esi               //this adress(0x402363) is being put into %esi which is compared to our input
+   0x00000000004012e2 <+34>:	mov    $0x0,%eax                    // eax = 0
+=> 0x00000000004012e7 <+39>:	callq  0x400b00 <__isoc99_sscanf@plt>
+   0x00000000004012ec <+44>:	add    $0x10,%rsp
+   0x00000000004012f0 <+48>:	cmp    $0x5,%eax                    //eax <= 5 , bomb will explode
+   0x00000000004012f3 <+51>:	jle    0x4012fa <read_six_numbers+58>
+   0x00000000004012f5 <+53>:	add    $0x8,%rsp
+   0x00000000004012f9 <+57>:	retq   
+   0x00000000004012fa <+58>:	callq  0x40129e <explode_bomb>
+End of assembler dump.
+
+(gdb) x/s 0x402363
+0x402363:	"%d %d %d %d %d %d"
+
+ So ---> must be the format of our answer, which is 6 digits with spaces in between.
+------------------------------------------------------------------------
 it is obvious that we are looking for some 6 numbers. Maybe they have an order.
 
 Lets try one more time with 6 random numbers to understand clearly.
@@ -72,20 +102,20 @@ Dump of assembler code for function phase_2:
    0x0000000000400dc3 <+2>:	sub    $0x28,%rsp
    0x0000000000400dc7 <+6>:	mov    %rsp,%rsi
    0x0000000000400dca <+9>:	callq  0x4012c0 <read_six_numbers>
-   0x0000000000400dcf <+14>:	cmpl   $0x0,(%rsp)                    //first number of rsp shows is zero or not? 
+   0x0000000000400dcf <+14>:	cmpl   $0x0,(%rsp)                    //first number of rsp shows is 0 or not? 
    0x0000000000400dd3 <+18>:	jne    0x400ddc <phase_2+27>
-   0x0000000000400dd5 <+20>:	cmpl   $0x1,0x4(%rsp)
+   0x0000000000400dd5 <+20>:	cmpl   $0x1,0x4(%rsp)                 //second number of rsp shows is 1 or not?
    0x0000000000400dda <+25>:	je     0x400de1 <phase_2+32>
    0x0000000000400ddc <+27>:	callq  0x40129e <explode_bomb>
-   0x0000000000400de1 <+32>:	mov    %rsp,%rbx
+   0x0000000000400de1 <+32>:	mov    %rsp,%rbx                      // rbx = rsp
    0x0000000000400de4 <+35>:	lea    0x10(%rbx),%rbp
    0x0000000000400de8 <+39>:	jmp    0x400df3 <phase_2+50>
-   0x0000000000400dea <+41>:	add    $0x4,%rbx
-   0x0000000000400dee <+45>:	cmp    %rbp,%rbx
+   0x0000000000400dea <+41>:	add    $0x4,%rbx                      //adding 4 means the next number of the serie.
+   0x0000000000400dee <+45>:	cmp    %rbp,%rbx                      
    0x0000000000400df1 <+48>:	je     0x400e04 <phase_2+67>
-   0x0000000000400df3 <+50>:	mov    0x4(%rbx),%eax
-   0x0000000000400df6 <+53>:	add    (%rbx),%eax
-   0x0000000000400df8 <+55>:	cmp    %eax,0x8(%rbx)
+   0x0000000000400df3 <+50>:	mov    0x4(%rbx),%eax                 //eax = second number in rbx
+   0x0000000000400df6 <+53>:	add    (%rbx),%eax                    //eax += first number in rbx
+   0x0000000000400df8 <+55>:	cmp    %eax,0x8(%rbx)                 //eax ==? third number in rbx
    0x0000000000400dfb <+58>:	je     0x400dea <phase_2+41>
    0x0000000000400dfd <+60>:	callq  0x40129e <explode_bomb>
    0x0000000000400e02 <+65>:	jmp    0x400dea <phase_2+41>
@@ -95,13 +125,74 @@ Dump of assembler code for function phase_2:
    0x0000000000400e0a <+73>:	retq   
 End of assembler dump.
 
-first part is the inital values and creating the stack with those.
+first part is the inital values and creating the stack with those
 When we jump directly to callq  0x4012c0 <read_six_numbers>, %rax will keep the input that we enter. Lets check it.
 
 (gdb) print $rax
 $3 = 6305744
 (gdb) x/s 6305744
 0x6037d0 <input_strings+80>:	"1 2 3 4 5 6"
+This is our input.
+
+Lets look at the assembly code to figure the numbers.
+
+ 0x0000000000400dcf <+14>:	cmpl   $0x0,(%rsp)                   
+ 0x0000000000400dd3 <+18>:	jne    0x400ddc <phase_2+27>
+ 0x0000000000400dd5 <+20>:	cmpl   $0x1,0x4(%rsp)            
+ 
+In line 105 and 107, we see that the first number should be 0. Otherwise bomb will explode. 
+And same situation also supports the second number. İt has to be 1.
+
+   0x0000000000400de8 <+39>:	jmp    0x400df3 <phase_2+50>
+   0x0000000000400dea <+41>:	add    $0x4,%rbx                      //adding 4 means the next number of the serie.
+   0x0000000000400dee <+45>:	cmp    %rbp,%rbx                      
+   0x0000000000400df1 <+48>:	je     0x400e04 <phase_2+67>
+   0x0000000000400df3 <+50>:	mov    0x4(%rbx),%eax                 //eax = second number in rbx
+   0x0000000000400df6 <+53>:	add    (%rbx),%eax                    //eax += first number in rbx
+   0x0000000000400df8 <+55>:	cmp    %eax,0x8(%rbx)                 //eax ==? third number in rbx
+
+For rest of the numbers, firstly lets think step by step and only find the third one.
+
+At the beginning our rbx shows the beginning of the numbers' address'. This means its the first address of the stack. And depend on the data type addres' changes 4 byte in an int case.
+So by adding 4 to rbx, means the next address and in the first case it means second number.
+--> 0x0000000000400dea <+41>:	add    $0x4,%rbx 
+
+And then the value that has been kept in address (current rbx)+4 which means (first address)+8 moved to the register eax. So eax keeps the secon one.
+--> 0000000000400df3 <+50>:	mov    0x4(%rbx),%eax                 //eax = second number in rbx
+
+Then eax updated by adding the value of the first address of rbx shows. 
+--> 0x0000000000400df6 <+53>:	add    (%rbx),%eax   
+
+eax = old eax (which is second of rbx) + first rbx.
+
+From here,the current rbx shows the second address so adding 8 means third address of the stack. 
+So we understand that third number has to be addition of first two. which is 0+1 = 1.
+--> 0x0000000000400df8 <+55>:	cmp    %eax,0x8(%rbx)
+    0x0000000000400dfb <+58>:	je     0x400dea <phase_2+41>                 //jump 41 and update the current rbx by adding 4 for next comparasion
+    0x0000000000400dfd <+60>:	callq  0x40129e <explode_bomb>               //not match
+    0x0000000000400e02 <+65>:	jmp    0x400dea <phase_2+41>
+
+This process continues until all the six values checked. Ofcourse it some number are wrong the bomb will explode.
+
+
+At the end , it a Fibonacci!!! 
+
+So the 6 numbers that we looking for is : 
+   
+   0 1 1 2 3 5
+   
+   
+Lets check it ::
+
+   (gdb) r answers.txt
+   Starting program: /home/zeynep/Desktop/Project 2/bomb answers.txt
+   Welcome to my fiendish little bomb. You have 6 phases with
+   which to blow yourself up. Have a nice day!
+   Phase 1 defused. How about the next one?
+   0 1 1 2 3 5
+   That's number 2.  Keep going!
+   | 
+
 
 
 
