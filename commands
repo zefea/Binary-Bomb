@@ -1,0 +1,10 @@
+objdumb -d bomb
+objdumb -t bomb
+run bomb
+break phase_1
+disas
+stepi *adress 
+nexti *adress
+info register_name
+print $register_name /p/s or x/s
+
